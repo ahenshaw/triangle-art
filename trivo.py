@@ -1,7 +1,9 @@
+#!/usr/bin/python3
 # standard library
 import random
 import time
 import sys
+import argparse
 
 # third-party libraries
 import wx
@@ -48,6 +50,9 @@ class Trivolution:
         self.arena = Arena(ref_image)
         
         self.start_time = time.time()
+        print()
+        print('Generation  Elapsed      Fitness')
+        print('----------  -----------  -------------')
     
     def phenotype(self, individual):
         return numpy.array(individual).reshape(-1, 10)
@@ -64,7 +69,7 @@ class Trivolution:
             return
             
         self.best_fitness = fitness
-        sys.stdout.write('{} {} {}\r'.format(generation, 
+        sys.stdout.write('\r{:10}  {}  {}'.format(generation, 
                                              arrow.get(elapsed).format('HH:mm:ss.SS'), 
                                              fitness))
         
@@ -108,6 +113,13 @@ class Trivolution:
                                           interval   = 1)
 
 if __name__ == '__main__':
-    ga = Trivolution('reference/dh.jpg', '???')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', help='file path to reference image')
+    parser.add_argument('-d', default=None, help='helpful description of image')
+    parser.add_argument('-n', default=100, type=int, help='number of triangles to use')
+    parser.add_argument('-p', default=100, type=int, help='population size')
+    args = parser.parse_args()
+    
+    ga = Trivolution(args.filename, description=args.d, num_triangles=args.n, population_size=args.p)
     ga.start()
     

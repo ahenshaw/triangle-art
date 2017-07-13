@@ -4,9 +4,10 @@ import random
 # third-party libraries
 import wx
 import wx.adv
-import numpy as np
 from wx.lib.pubsub import pub
+import numpy as np
 import ObjectListView
+import arrow
 
 # custom modules
 import database
@@ -45,8 +46,11 @@ class MainFrame(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.main, 1, flag=wx.EXPAND)
         self.SetSizer(sizer)
+        self.sb = self.CreateStatusBar(style=wx.STB_SIZEGRIP)
+        self.sb.SetFieldsCount(3, [200, 200, 200])
         
         self.doMenu()
+        pub.subscribe(self.onStats, 'Stats')
         
     def doMenu(self):
         menubar = wx.MenuBar()
@@ -89,13 +93,22 @@ class MainFrame(wx.Frame):
         dlg = OpenInfoDialog(info)
         if dlg.ShowModal() == wx.ID_OK:
             info = dlg.lb.GetSelectedObject()
-            reference_image = wx.Image(info['width'], info['height'], info['reference'])
-            pub.sendMessage('Info', db=self.db, info=info)
-            pub.sendMessage('Image', image=reference_image)
+            if info is not None:
+                if info['description'].startswith('?'):
+                    pub.sendMessage('Hide Image')
+                reference_image = wx.Image(info['width'], info['height'], info['reference'])
+                pub.sendMessage('Info', db=self.db, info=info)
+                pub.sendMessage('Image', image=reference_image)
         dlg.Destroy()
        
     def onNew(self, event):
+        '''To be done'''
         pass
+        
+    def onStats(self, elapsed, generation, fitness):
+        self.sb.SetStatusText('Elapsed: %s' % arrow.get(elapsed).format('HH:mm:ss'), 0)
+        self.sb.SetStatusText('Generation: %d' % generation, 1)
+        self.sb.SetStatusText('Fitness: %0.3f' % fitness, 2)
         
     def onExportAsSVG(self, event):
         save_dlg = wx.FileDialog(self, 'Save as SVG', '', '',
@@ -104,7 +117,7 @@ class MainFrame(wx.Frame):
         if save_dlg.ShowModal() == wx.ID_CANCEL:
             return
 
-        pub.sendMessage('SVG', save_dlg.GetPath())
+        pub.sendMessage('SVG', filename=save_dlg.GetPath())
         
     def onExportAsPNG(self, event):
         save_dlg = wx.FileDialog(self, 'Save as PNG', '', '',
@@ -113,7 +126,7 @@ class MainFrame(wx.Frame):
         if save_dlg.ShowModal() == wx.ID_CANCEL:
             return
 
-        pub.sendMessage('PNG', filename)
+        pub.sendMessage('PNG', filename=save_dlg.GetPath())
         
     def onExit(self, event):
         self.Close()

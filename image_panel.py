@@ -15,6 +15,7 @@ class ImagePanel(wx.Panel):
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
         pub.subscribe(self.SetImage, 'Image')
+        pub.subscribe(self.onHide, 'Hide Image')
         
     def SetImage(self, image):
         self.image  = image
@@ -23,6 +24,9 @@ class ImagePanel(wx.Panel):
         
     def OnEraseBackground(self, event):
         pass
+
+    def onHide(self):
+        self.hide = True
         
     def onClick(self, event):
         self.hide = not self.hide
