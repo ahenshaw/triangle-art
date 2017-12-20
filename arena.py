@@ -1,5 +1,6 @@
 import wx
 import numpy as np
+import weighting
 
 class Arena:
     def __init__(self, reference):
@@ -10,6 +11,7 @@ class Arena:
         # create numpy array from the reference bitmap 
         bpp = 4  # bytes per pixel
         buffer_length = self.scratch.Width * self.scratch.Height * bpp
+        self.weights = weighting.radial(self.scratch.Width, self.scratch.Height,4).flat
         
         self.ref_array     = np.zeros(buffer_length, dtype=np.uint8)
         buffer = memoryview(self.ref_array)
@@ -49,5 +51,6 @@ class Arena:
         buffer = memoryview(self.scratch_array)
         self.scratch.CopyToBuffer(buffer, wx.BitmapBufferFormat_RGB32)
         
-        fitness = np.sum((self.ref_array - self.scratch_array)**2)
+        fitness = np.sum(((self.ref_array - self.scratch_array)*self.weights)**2)
+        #~ fitness = np.sum((abs(self.ref_array - self.scratch_array)*self.weights))
         return fitness

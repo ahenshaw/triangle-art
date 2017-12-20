@@ -49,7 +49,17 @@ class PhenotypePanel(wx.Panel):
         dc.Clear()
         if self.genome is None:
             return
-        self.draw(dc, self.scale)
+        if self.image_size is None:
+            return
+        memDC = wx.MemoryDC()
+        w, h = self.image_size
+        bitmap = wx.Bitmap(w, h)
+        memDC.SelectObject(bitmap)
+        self.draw(memDC, 1.0)
+        memDC.SelectObject(wx.NullBitmap)
+        image = bitmap.ConvertToImage()
+        image = image.Scale(w*self.scale, h*self.scale, wx.IMAGE_QUALITY_BICUBIC)
+        dc.DrawBitmap(image.ConvertToBitmap(), 0, 0)
 
     def draw(self, dc, scale=1):
         ''' Draw the genome into the provided DC (memoryDC or PaintDC)'''
@@ -57,12 +67,13 @@ class PhenotypePanel(wx.Panel):
             return
         w, h = self.image_size
         points  = np.floor(self.genome[:, 0:6].reshape(-1,3,2)*self.image_size)
-        points  *= scale
+        #~ points  *= scale
         brushes = [wx.Brush(wx.Colour(r,g,b,a)) for (r,g,b,a) in self.genome[:,6:]*255]
 
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.SetPen(wx.WHITE_PEN)
-        dc.DrawRectangle(0, 0, w*scale, h*scale)    
+        #~ dc.DrawRectangle(0, 0, w*scale, h*scale)    
+        dc.DrawRectangle(0, 0, w, h)    
         
         # use the Graphics Device Context to support alpha channel drawing
         gdc = wx.GCDC(dc)

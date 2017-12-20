@@ -20,7 +20,6 @@ import database
 from arena import Arena
 
 
-DEFAULT_NUM_TRIANGLES = 100
 DB_FILE = 'data/results.db'
 
 
@@ -28,8 +27,8 @@ class Trivolution:
     def __init__(self, 
                  image_fn, 
                  description     = None, 
-                 num_triangles   = DEFAULT_NUM_TRIANGLES,
-                 population_size = 100):
+                 num_triangles   = None,
+                 population_size = None):
         
         # to use some of the wx drawing capabilities, must declare the wx.App first
         self.app = wx.App(redirect=False)
@@ -38,7 +37,7 @@ class Trivolution:
         description          = description or image_fn
         self.num_triangles   = num_triangles
         self.population_size = population_size
-        self.best_fitness    = 1e100 # exceeding large number
+        self.best_fitness    = 1e100 # exceedingly large number
 
         # insert problem description into database
         self.db         = database.Database(DB_FILE)
@@ -89,7 +88,7 @@ class Trivolution:
         creator.create("Individual", list, fitness=creator.FitnessMin)
 
         toolbox = base.Toolbox()
-        toolbox.register("gene",       random.random)
+        toolbox.register("gene",       lambda: random.random()/2 + 0.25)
         toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.gene, n=num_floats)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("evaluate",   self.evaluate)
@@ -107,7 +106,7 @@ class Trivolution:
                                           toolbox,
                                           cxpb       = crossover_prob,
                                           mutpb      = mutation_prob,
-                                          ngen       = 100000,
+                                          ngen       = 1000000,
                                           halloffame = self.fittest,
                                           report     = self.update,
                                           interval   = 1)
@@ -116,8 +115,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help='file path to reference image')
     parser.add_argument('-d', default=None, help='helpful description of image')
-    parser.add_argument('-n', default=100, type=int, help='number of triangles to use')
-    parser.add_argument('-p', default=100, type=int, help='population size')
+    parser.add_argument('-n', default=200, type=int, help='number of triangles to use')
+    parser.add_argument('-p', default=20, type=int, help='population size')
     args = parser.parse_args()
     
     ga = Trivolution(args.filename, description=args.d, num_triangles=args.n, population_size=args.p)

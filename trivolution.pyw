@@ -71,6 +71,9 @@ class MainFrame(wx.Frame):
 
         mi_export_img = file_menu.Append(-1, "Export As PNG...")
         self.Bind(wx.EVT_MENU, self.onExportAsPNG, mi_export_img)
+
+        mi_export_batch = file_menu.Append(-1, "Batch Export...")
+        self.Bind(wx.EVT_MENU, self.onBatchExport, mi_export_batch)
         
         file_menu.AppendSeparator()
         mi_exit = file_menu.Append(-1, "E&xit")
@@ -127,6 +130,13 @@ class MainFrame(wx.Frame):
             return
 
         pub.sendMessage('PNG', filename=save_dlg.GetPath())
+        
+    def onBatchExport(self, event):
+        save_dlg = wx.DirDialog(self, 'Save to Directory', '')
+        if save_dlg.ShowModal() == wx.ID_CANCEL:
+            return
+                   
+        pub.sendMessage('Batch', folder=save_dlg.GetPath())
         
     def onExit(self, event):
         self.Close()
